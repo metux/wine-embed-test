@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <inttypes.h>
+
 #define UNICODE
 #include <windows.h>
 
@@ -14,7 +17,11 @@ LRESULT CALLBACK ChildProc1(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
-            TextOutW(hdc, 10, 10, L"This is Child 1", 15);
+
+            wchar_t buf[32];  // enough for "0x" + 16 hex digits + NUL
+            swprintf(buf, sizeof(buf)/sizeof(buf[0]), L"HWND: 0x%" PRIxPTR, (uintptr_t)hwnd);
+            TextOutW(hdc, 10, 10, buf, wcslen(buf));
+//            TextOutW(hdc, 10, 10, L"This is Child 1", 15);
             EndPaint(hwnd, &ps);
             return 0;
         }
@@ -64,17 +71,21 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             HINSTANCE hInst = ((LPCREATESTRUCT)lParam)->hInstance;
 
             // Create 3 child windows, each with its own class and title
-            CreateWindowExW(0, L"ChildClass1", L"Child Window #1",
-                            WS_CHILD | WS_VISIBLE | WS_BORDER,
-                            10, 10, 200, 80, hwnd, NULL, hInst, NULL);
+            HWND sub1 = CreateWindowExW(0, L"ChildClass1", L"Child Window #1",
+                            WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED,
+                            13, 13, 211, 80, hwnd, NULL, hInst, NULL);
 
-            CreateWindowExW(0, L"ChildClass2", L"Child Window #2",
-                            WS_CHILD | WS_VISIBLE | WS_BORDER,
-                            10, 100, 200, 80, hwnd, NULL, hInst, NULL);
+            HWND sub2 = CreateWindowExW(0, L"ChildClass2", L"Child Window #2",
+                            WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED,
+                            13, 113, 211, 80, hwnd, NULL, hInst, NULL);
 
-            CreateWindowExW(0, L"ChildClass3", L"Child Window #3",
-                            WS_CHILD | WS_VISIBLE | WS_BORDER,
-                            10, 190, 200, 80, hwnd, NULL, hInst, NULL);
+            HWND sub3 = CreateWindowExW(0, L"ChildClass3", L"Child Window #3",
+                            WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED,
+                            13, 213, 211, 80, hwnd, NULL, hInst, NULL);
+
+//            char buffer[256] = { 0 };
+//            snprintf(buffer, sizeof(buffer-1), "sub1=%p sub2=%p sub3=%p\n", sub1, sub2, sub3);
+
             return 0;
         }
 
