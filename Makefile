@@ -25,5 +25,5 @@ $(TARGET): $(SRCS)
 clean:
 	rm -f $(TARGET) *.o
 
-run:
+run: $(TARGET)
 	~/.usr/wine/bin/wine win32_subwindows.exe
