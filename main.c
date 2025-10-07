@@ -64,7 +64,7 @@ LRESULT CALLBACK ChildProc3(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 // Main window procedure
 LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    int flags = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED;
+    int flags = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED | 0x01;
     switch (msg)
     {
         case WM_CREATE:
