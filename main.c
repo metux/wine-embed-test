@@ -64,12 +64,13 @@ LRESULT CALLBACK ChildProc3(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 // Main window procedure
 LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+    int flags = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED;
     switch (msg)
     {
         case WM_CREATE:
         {
             HINSTANCE hInst = ((LPCREATESTRUCT)lParam)->hInstance;
-            int flags = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED;
+//            int flags = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED;
 
             // Create 3 child windows, each with its own class and title
             HWND sub1 = CreateWindowExW(0, L"ChildClass1", L"Child Window #1",
@@ -80,12 +81,21 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                             flags,
                             13, 113, 211, 80, hwnd, NULL, hInst, NULL);
 
-            HWND sub3 = CreateWindowExW(0, L"ChildClass3", L"Child Window #3",
-                            flags,
-                            13, 213, 211, 80, hwnd, NULL, hInst, NULL);
+//            HWND sub3 = CreateWindowExW(0, L"ChildClass3", L"Child Window #3",
+//                            flags,
+//                            13, 213, 211, 80, hwnd, NULL, hInst, NULL);
 
 //            char buffer[256] = { 0 };
 //            snprintf(buffer, sizeof(buffer-1), "sub1=%p sub2=%p sub3=%p\n", sub1, sub2, sub3);
+
+            return 0;
+        }
+
+        case WM_RBUTTONDOWN: {
+            HINSTANCE hInst = ((LPCREATESTRUCT)lParam)->hInstance;
+            HWND sub3 = CreateWindowExW(0, L"ChildClass3", L"Child Window #3",
+                            flags,
+                            13, 213, 211, 80, hwnd, NULL, hInst, NULL);
 
             return 0;
         }
