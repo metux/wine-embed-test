@@ -69,18 +69,19 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_CREATE:
         {
             HINSTANCE hInst = ((LPCREATESTRUCT)lParam)->hInstance;
+            int flags = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED;
 
             // Create 3 child windows, each with its own class and title
             HWND sub1 = CreateWindowExW(0, L"ChildClass1", L"Child Window #1",
-                            WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED,
+                            flags,
                             13, 13, 211, 80, hwnd, NULL, hInst, NULL);
 
             HWND sub2 = CreateWindowExW(0, L"ChildClass2", L"Child Window #2",
-                            WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED,
+                            flags,
                             13, 113, 211, 80, hwnd, NULL, hInst, NULL);
 
             HWND sub3 = CreateWindowExW(0, L"ChildClass3", L"Child Window #3",
-                            WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED,
+                            flags,
                             13, 213, 211, 80, hwnd, NULL, hInst, NULL);
 
 //            char buffer[256] = { 0 };
