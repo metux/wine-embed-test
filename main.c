@@ -18,6 +18,8 @@
 
 const wchar_t *PROP_NAME_XID = L"__wine_x11_whole_window";
 
+HWND container_window;
+
 // Window procedures for each subwindow type
 LRESULT CALLBACK SimpleFieldProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -70,7 +72,7 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                             flags,
                             5, 213, BOX_W, BOX_H, hwnd, NULL, hInst, NULL);
 
-            CreateWindowExW(0, L"SimpleField", L"Child Window #4",
+            container_window = CreateWindowExW(0, L"SimpleField", L"Child Window #4",
                             flags | WS_X_NATIVE,
                             BOX_W + 10, 10, 600, 600, hwnd, NULL, hInst, NULL);
 
@@ -81,6 +83,15 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             wchar_t buffer[1024];
             wsprintfW(buffer, L"RBUTTONDOWN");
             SetWindowTextW(hwnd, buffer);
+            ShowWindow(container_window, SW_HIDE);
+            return 0;
+        }
+
+        case WM_LBUTTONDOWN: {
+            wchar_t buffer[1024];
+            wsprintfW(buffer, L"LBUTTONDOWN");
+            SetWindowTextW(hwnd, buffer);
+            ShowWindow(container_window, SW_SHOW);
             return 0;
         }
 
