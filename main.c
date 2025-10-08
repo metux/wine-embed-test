@@ -103,6 +103,10 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                             flags,
                             13, 13, 400, 400, hwnd, NULL, hInst, NULL);
 
+            wchar_t buffer[1024];
+            wsprintfW(buffer, L"RBUTTONDOWN SUB3=%p", sub3);
+            SetWindowTextW(hwnd, buffer);
+
 //            HWND sub3 = CreateWindowExW(0, L"ChildClass3", L"Child Window #3",
 //                            flags,
 //                            5, 5, 400, 400, hwnd, NULL, hInst, NULL);
