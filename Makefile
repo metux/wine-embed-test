@@ -26,4 +26,7 @@ clean:
 	rm -f $(TARGET) *.o
 
 run: $(TARGET)
-	~/.usr/wine/bin/wine win32_subwindows.exe
+	WINEDEBUG=+all ~/.usr/wine/bin/wine win32_subwindows.exe 2>debug.log
+
+dbg: $(TARGET)
+	~/.usr/wine/bin/winedbg --gdb win32_subwindows.exe
