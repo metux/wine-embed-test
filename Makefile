@@ -10,7 +10,7 @@ TARGET := win32_subwindows.exe
 SRCS := main.c
 
 # compiler flags
-CFLAGS := -Wall -Wextra -O2 -municode
+CFLAGS := -Wall -Wextra -O2 -municode -g -O0 -mwindows
 
 # linker flags (Win32 GUI subsystem)
 LDFLAGS := -mwindows
@@ -26,7 +26,8 @@ clean:
 	rm -f $(TARGET) *.o
 
 run: $(TARGET)
-	WINEDEBUG=+all ~/.usr/wine/bin/wine win32_subwindows.exe 2>debug.log
+#	WINEDEBUG=+all ~/.usr/wine/bin/wine win32_subwindows.exe 2>debug.log
+	~/.usr/wine/bin/wine win32_subwindows.exe
 
 dbg: $(TARGET)
 	~/.usr/wine/bin/winedbg --gdb win32_subwindows.exe
