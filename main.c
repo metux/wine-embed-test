@@ -44,41 +44,6 @@ LRESULT CALLBACK SimpleFieldProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
     return DefWindowProcW(hwnd, msg, wParam, lParam);
 }
 
-LRESULT CALLBACK StaticTextProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-    switch (msg)
-    {
-        case WM_PAINT:
-        {
-            wchar_t title[512];
-            int length = GetWindowTextW(hwnd, title, sizeof(title) / sizeof(title[0]));
-
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
-            TextOutW(hdc, 10, 10, title, length);
-            EndPaint(hwnd, &ps);
-            return 0;
-        }
-    }
-    return DefWindowProcW(hwnd, msg, wParam, lParam);
-}
-
-LRESULT CALLBACK ChildProc3(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-    switch (msg)
-    {
-        case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
-            TextOutW(hdc, 10, 10, L"This is Child 3", 15);
-            EndPaint(hwnd, &ps);
-            return 0;
-        }
-    }
-    return DefWindowProcW(hwnd, msg, wParam, lParam);
-}
-
 // Main window procedure
 LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -97,11 +62,11 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                             flags,
                             5, 10, BOX_W, BOX_H, hwnd, NULL, hInst, NULL);
 
-            CreateWindowExW(0, L"StaticText", L"Child Window #2",
+            CreateWindowExW(0, L"SimpleField", L"Child Window #2",
                             flags,
                             5, 113, BOX_W, BOX_H, hwnd, NULL, hInst, NULL);
 
-            CreateWindowExW(0, L"StaticText", L"Child Window #3",
+            CreateWindowExW(0, L"SimpleField", L"Child Window #3",
                             flags,
                             5, 213, BOX_W, BOX_H, hwnd, NULL, hInst, NULL);
 
@@ -161,15 +126,6 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, PWSTR lpCmdLine, int nShow
         .lpszClassName = L"SimpleField",
     };
     RegisterClassW(&child1);
-
-    WNDCLASSW child2 = {
-        .hInstance = hInst,
-        .hCursor = LoadCursorW(NULL, IDC_ARROW),
-        .hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1),
-        .lpfnWndProc = StaticTextProc,
-        .lpszClassName = L"StaticText",
-    };
-    RegisterClassW(&child2);
 
     // --- Create main window ---
     HWND hwndMain = CreateWindowExW(
