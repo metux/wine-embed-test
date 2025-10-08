@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <inttypes.h>
 
+#ifndef UNICODE
 #define UNICODE
+#endif
+
 #include <windows.h>
 
 //
