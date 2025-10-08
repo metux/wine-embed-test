@@ -95,7 +95,7 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             HINSTANCE hInst = ((LPCREATESTRUCT)lParam)->hInstance;
             HWND sub3 = CreateWindowExW(0, L"ChildClass3", L"Child Window #3",
                             flags,
-                            13, 213, 211, 80, hwnd, NULL, hInst, NULL);
+                            5, 5, 400, 400, hwnd, NULL, hInst, NULL);
 
             return 0;
         }
@@ -140,7 +140,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, PWSTR lpCmdLine, int nShow
     HWND hwndMain = CreateWindowExW(
         0, L"MainWinClass", L"Main Window",
         WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-        CW_USEDEFAULT, CW_USEDEFAULT, 400, 350,
+        CW_USEDEFAULT, CW_USEDEFAULT, 1024, 768,
         NULL, NULL, hInst, NULL);
 
     if (!hwndMain)
