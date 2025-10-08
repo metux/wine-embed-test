@@ -13,13 +13,13 @@
 */
 #define WS_X_NATIVE 0x01
 
-#define BOX_W 120
+#define BOX_W 140
 #define BOX_H 60
 
 const wchar_t *PROP_NAME_XID = L"__wine_x11_whole_window";
 
 // Window procedures for each subwindow type
-LRESULT CALLBACK ChildProc1(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK SimpleFieldProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {
@@ -30,11 +30,13 @@ LRESULT CALLBACK ChildProc1(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
 
-            wchar_t buf[256];
+            wchar_t buf[1024];
+            int length = GetWindowTextW(hwnd, buf, sizeof(buf) / sizeof(buf[0]));
+            TextOutW(hdc, 5, 5, buf, length);
             swprintf(buf, sizeof(buf)/sizeof(buf[0]), L"WIN: 0x%X", (uintptr_t)hwnd);
-            TextOutW(hdc, 5, 5, buf, wcslen(buf));
-            swprintf(buf, sizeof(buf)/sizeof(buf[0]), L"XID: 0x%X", XID);
             TextOutW(hdc, 5, 20, buf, wcslen(buf));
+            swprintf(buf, sizeof(buf)/sizeof(buf[0]), L"XID: 0x%X", XID);
+            TextOutW(hdc, 5, 35, buf, wcslen(buf));
             EndPaint(hwnd, &ps);
             return 0;
         }
@@ -42,15 +44,18 @@ LRESULT CALLBACK ChildProc1(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return DefWindowProcW(hwnd, msg, wParam, lParam);
 }
 
-LRESULT CALLBACK ChildProc2(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK StaticTextProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {
         case WM_PAINT:
         {
+            wchar_t title[512];
+            int length = GetWindowTextW(hwnd, title, sizeof(title) / sizeof(title[0]));
+
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
-            TextOutW(hdc, 10, 10, L"This is Child 2", 15);
+            TextOutW(hdc, 10, 10, title, length);
             EndPaint(hwnd, &ps);
             return 0;
         }
@@ -88,30 +93,28 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)hInst);
 
             /* Create 3 child windows, each with its own class and title */
-            CreateWindowExW(0, L"ChildClass1", L"Child Window #1",
+            CreateWindowExW(0, L"SimpleField", L"Child Window #1",
                             flags,
                             5, 10, BOX_W, BOX_H, hwnd, NULL, hInst, NULL);
 
-            CreateWindowExW(0, L"ChildClass2", L"Child Window #2",
+            CreateWindowExW(0, L"StaticText", L"Child Window #2",
                             flags,
                             5, 113, BOX_W, BOX_H, hwnd, NULL, hInst, NULL);
 
-            CreateWindowExW(0, L"ChildClass3", L"Child Window #3",
+            CreateWindowExW(0, L"StaticText", L"Child Window #3",
                             flags,
                             5, 213, BOX_W, BOX_H, hwnd, NULL, hInst, NULL);
+
+            CreateWindowExW(0, L"SimpleField", L"Child Window #4",
+                            flags | WS_X_NATIVE,
+                            BOX_W + 10, 10, 600, 600, hwnd, NULL, hInst, NULL);
 
             return 0;
         }
 
         case WM_RBUTTONDOWN: {
-            int flags = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED | WS_X_NATIVE;
-            HINSTANCE hInst = (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-            HWND sub3 = CreateWindowExW(0, L"ChildClass1", L"Child Window #4",
-                            flags,
-                            BOX_W + 10, 10, 600, 600, hwnd, NULL, hInst, NULL);
-
             wchar_t buffer[1024];
-            wsprintfW(buffer, L"RBUTTONDOWN SUB3=%p", sub3);
+            wsprintfW(buffer, L"RBUTTONDOWN");
             SetWindowTextW(hwnd, buffer);
             return 0;
         }
@@ -154,8 +157,8 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, PWSTR lpCmdLine, int nShow
         .hInstance = hInst,
         .hCursor = LoadCursorW(NULL, IDC_ARROW),
         .hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1),
-        .lpfnWndProc = ChildProc1,
-        .lpszClassName = L"ChildClass1",
+        .lpfnWndProc = SimpleFieldProc,
+        .lpszClassName = L"SimpleField",
     };
     RegisterClassW(&child1);
 
@@ -163,19 +166,10 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, PWSTR lpCmdLine, int nShow
         .hInstance = hInst,
         .hCursor = LoadCursorW(NULL, IDC_ARROW),
         .hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1),
-        .lpfnWndProc = ChildProc2,
-        .lpszClassName = L"ChildClass2",
+        .lpfnWndProc = StaticTextProc,
+        .lpszClassName = L"StaticText",
     };
     RegisterClassW(&child2);
-
-    WNDCLASSW child3 = {
-        .hInstance = hInst,
-        .hCursor = LoadCursorW(NULL, IDC_ARROW),
-        .hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1),
-        .lpfnWndProc = ChildProc3,
-        .lpszClassName = L"ChildClass3",
-    };
-    RegisterClassW(&child3);
 
     // --- Create main window ---
     HWND hwndMain = CreateWindowExW(
