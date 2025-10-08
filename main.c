@@ -85,13 +85,13 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                             flags,
                             13, 13, 211, 80, hwnd, NULL, hInst, NULL);
 
-            HWND sub2 = CreateWindowExW(0, L"ChildClass2", L"Child Window #2",
-                            flags,
-                            13, 113, 211, 80, hwnd, NULL, hInst, NULL);
+//            HWND sub2 = CreateWindowExW(0, L"ChildClass2", L"Child Window #2",
+//                            flags,
+//                            13, 113, 211, 80, hwnd, NULL, hInst, NULL);
 
-            HWND sub3 = CreateWindowExW(0, L"ChildClass3", L"Child Window #3",
-                            flags,
-                            13, 213, 211, 80, hwnd, NULL, hInst, NULL);
+//            HWND sub3 = CreateWindowExW(0, L"ChildClass3", L"Child Window #3",
+//                            flags,
+//                            13, 213, 211, 80, hwnd, NULL, hInst, NULL);
 
             return 0;
         }
@@ -137,31 +137,42 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, PWSTR lpCmdLine, int nShowCmd)
 {
     // --- Register main window class ---
-    WNDCLASSW wc = {0};
-    wc.lpfnWndProc = MainProc;
-    wc.hInstance = hInst;
-    wc.hCursor = LoadCursorW(NULL, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-    wc.lpszClassName = L"MainWinClass";
+    WNDCLASSW wc = {
+        .lpfnWndProc = MainProc,
+        .hInstance = hInst,
+        .hCursor = LoadCursorW(NULL, IDC_ARROW),
+        .hbrBackground = (HBRUSH)(COLOR_WINDOW + 1),
+        .lpszClassName = L"MainWinClass",
+    };
     RegisterClassW(&wc);
 
     // --- Register 3 different child window classes ---
-    WNDCLASSW child = {0};
-    child.hInstance = hInst;
-    child.hCursor = LoadCursorW(NULL, IDC_ARROW);
-    child.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
+    WNDCLASSW child1 = {
+        .hInstance = hInst,
+        .hCursor = LoadCursorW(NULL, IDC_ARROW),
+        .hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1),
+        .lpfnWndProc = ChildProc1,
+        .lpszClassName = L"ChildClass1",
+    };
+    RegisterClassW(&child1);
 
-    child.lpfnWndProc = ChildProc1;
-    child.lpszClassName = L"ChildClass1";
-    RegisterClassW(&child);
+    WNDCLASSW child2 = {
+        .hInstance = hInst,
+        .hCursor = LoadCursorW(NULL, IDC_ARROW),
+        .hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1),
+        .lpfnWndProc = ChildProc2,
+        .lpszClassName = L"ChildClass2",
+    };
+    RegisterClassW(&child2);
 
-    child.lpfnWndProc = ChildProc2;
-    child.lpszClassName = L"ChildClass2";
-    RegisterClassW(&child);
-
-    child.lpfnWndProc = ChildProc3;
-    child.lpszClassName = L"ChildClass3";
-    RegisterClassW(&child);
+    WNDCLASSW child3 = {
+        .hInstance = hInst,
+        .hCursor = LoadCursorW(NULL, IDC_ARROW),
+        .hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1),
+        .lpfnWndProc = ChildProc3,
+        .lpszClassName = L"ChildClass3",
+    };
+    RegisterClassW(&child3);
 
     // --- Create main window ---
     HWND hwndMain = CreateWindowExW(
