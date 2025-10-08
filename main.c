@@ -97,6 +97,13 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                             flags,
                             5, 5, 400, 400, hwnd, NULL, hInst, NULL);
 
+            const wchar_t *PROP_NAME = L"__wine_x11_whole_window";
+
+            int myData = (int)GetPropW(sub3, PROP_NAME);
+            wchar_t buffer[64];
+            wsprintfW(buffer, L"Property value = 0x%X", myData);
+            MessageBoxW(hwnd, buffer, L"GetPropW", MB_OK);
+
             return 0;
         }
 
