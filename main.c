@@ -8,6 +8,11 @@
 #include <windows.h>
 #include <windowsx.h>
 
+/* hack for telling WinE to create an actual X11 window
+   Windows doesn't know it and ignores/cleans the lower bits
+*/
+#define WS_X_NATIVE 0x01
+
 const wchar_t *PROP_NAME_XID = L"__wine_x11_whole_window";
 
 // Window procedures for each subwindow type
@@ -67,7 +72,7 @@ LRESULT CALLBACK ChildProc3(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 // Main window procedure
 LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    int flags = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED | 0x01;
+    int flags = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED | WS_X_NATIVE;
     switch (msg)
     {
         case WM_CREATE:
@@ -77,7 +82,7 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             /* store the hInstance for later use */
             SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)hInst);
 
-            // Create 3 child windows, each with its own class and title
+            /* Create 3 child windows, each with its own class and title */
             CreateWindowExW(0, L"ChildClass1", L"Child Window #1",
                             flags,
                             13, 13, 211, 80, hwnd, NULL, hInst, NULL);
@@ -97,7 +102,7 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             HINSTANCE hInst = (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_USERDATA);
             HWND sub3 = CreateWindowExW(0, L"ChildClass1", L"Child Window #4",
                             flags,
-                            13, 13, 400, 400, hwnd, NULL, hInst, NULL);
+                            13, 13, 600, 600, hwnd, NULL, hInst, NULL);
 
             wchar_t buffer[1024];
             wsprintfW(buffer, L"RBUTTONDOWN SUB3=%p", sub3);
