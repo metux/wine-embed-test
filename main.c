@@ -6,6 +6,7 @@
 #endif
 
 #include <windows.h>
+#include <windowsx.h>
 
 const wchar_t *PROP_NAME = L"__wine_x11_whole_window";
 
@@ -113,6 +114,16 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 //            wsprintfW(buffer, L"Property value = 0x%X", myData);
 //            MessageBoxW(hwnd, buffer, L"GetPropW", MB_OK);
 
+            return 0;
+        }
+
+        case WM_MOUSEMOVE: {
+            int x = GET_X_LPARAM(lParam);
+            int y = GET_Y_LPARAM(lParam);
+
+            wchar_t buffer[64];
+            wsprintfW(buffer, L"Mouse at %d, %d", x, y);
+            SetWindowTextW(hwnd, buffer); // update window title with position
             return 0;
         }
 
