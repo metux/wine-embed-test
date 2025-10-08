@@ -13,6 +13,9 @@
 */
 #define WS_X_NATIVE 0x01
 
+#define BOX_W 120
+#define BOX_H 60
+
 const wchar_t *PROP_NAME_XID = L"__wine_x11_whole_window";
 
 // Window procedures for each subwindow type
@@ -27,9 +30,11 @@ LRESULT CALLBACK ChildProc1(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
 
-            wchar_t buf[32];  // enough for "0x" + 16 hex digits + NUL
-            swprintf(buf, sizeof(buf)/sizeof(buf[0]), L"HWND: 0x% XID: 0x%X" PRIxPTR, (uintptr_t)hwnd, XID);
-            TextOutW(hdc, 10, 10, buf, wcslen(buf));
+            wchar_t buf[256];
+            swprintf(buf, sizeof(buf)/sizeof(buf[0]), L"WIN: 0x%X", (uintptr_t)hwnd);
+            TextOutW(hdc, 5, 5, buf, wcslen(buf));
+            swprintf(buf, sizeof(buf)/sizeof(buf[0]), L"XID: 0x%X", XID);
+            TextOutW(hdc, 5, 20, buf, wcslen(buf));
             EndPaint(hwnd, &ps);
             return 0;
         }
@@ -72,11 +77,11 @@ LRESULT CALLBACK ChildProc3(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 // Main window procedure
 LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    int flags = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED | WS_X_NATIVE;
     switch (msg)
     {
         case WM_CREATE:
         {
+            int flags = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED;
             HINSTANCE hInst = ((LPCREATESTRUCT)lParam)->hInstance;
 
             /* store the hInstance for later use */
@@ -85,24 +90,25 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             /* Create 3 child windows, each with its own class and title */
             CreateWindowExW(0, L"ChildClass1", L"Child Window #1",
                             flags,
-                            13, 13, 211, 80, hwnd, NULL, hInst, NULL);
+                            5, 10, BOX_W, BOX_H, hwnd, NULL, hInst, NULL);
 
             CreateWindowExW(0, L"ChildClass2", L"Child Window #2",
                             flags,
-                            13, 113, 211, 80, hwnd, NULL, hInst, NULL);
+                            5, 113, BOX_W, BOX_H, hwnd, NULL, hInst, NULL);
 
             CreateWindowExW(0, L"ChildClass3", L"Child Window #3",
                             flags,
-                            13, 213, 211, 80, hwnd, NULL, hInst, NULL);
+                            5, 213, BOX_W, BOX_H, hwnd, NULL, hInst, NULL);
 
             return 0;
         }
 
         case WM_RBUTTONDOWN: {
+            int flags = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED | WS_X_NATIVE;
             HINSTANCE hInst = (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_USERDATA);
             HWND sub3 = CreateWindowExW(0, L"ChildClass1", L"Child Window #4",
                             flags,
-                            13, 13, 600, 600, hwnd, NULL, hInst, NULL);
+                            BOX_W + 10, 10, 600, 600, hwnd, NULL, hInst, NULL);
 
             wchar_t buffer[1024];
             wsprintfW(buffer, L"RBUTTONDOWN SUB3=%p", sub3);
