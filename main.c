@@ -7,6 +7,8 @@
 
 #include <windows.h>
 
+const wchar_t *PROP_NAME = L"__wine_x11_whole_window";
+
 //
 // Simple Win32 example: main window + several child windows
 //
@@ -18,11 +20,13 @@ LRESULT CALLBACK ChildProc1(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         case WM_PAINT:
         {
+            int XID = (int)GetPropW(hwnd, PROP_NAME);
+
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
 
             wchar_t buf[32];  // enough for "0x" + 16 hex digits + NUL
-            swprintf(buf, sizeof(buf)/sizeof(buf[0]), L"HWND: 0x%" PRIxPTR, (uintptr_t)hwnd);
+            swprintf(buf, sizeof(buf)/sizeof(buf[0]), L"HWND: 0x% XID: 0x%X" PRIxPTR, (uintptr_t)hwnd, XID);
             TextOutW(hdc, 10, 10, buf, wcslen(buf));
 //            TextOutW(hdc, 10, 10, L"This is Child 1", 15);
             EndPaint(hwnd, &ps);
@@ -72,40 +76,42 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         case WM_CREATE:
         {
-//            HINSTANCE hInst = ((LPCREATESTRUCT)lParam)->hInstance;
+            HINSTANCE hInst = ((LPCREATESTRUCT)lParam)->hInstance;
 //            int flags = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED;
 
             // Create 3 child windows, each with its own class and title
-//            HWND sub1 = CreateWindowExW(0, L"ChildClass1", L"Child Window #1",
-//                            flags,
-//                            13, 13, 211, 80, hwnd, NULL, hInst, NULL);
+            HWND sub1 = CreateWindowExW(0, L"ChildClass1", L"Child Window #1",
+                            flags,
+                            13, 13, 211, 80, hwnd, NULL, hInst, NULL);
 
-//            HWND sub2 = CreateWindowExW(0, L"ChildClass2", L"Child Window #2",
-//                            flags,
-//                            13, 113, 211, 80, hwnd, NULL, hInst, NULL);
+            HWND sub2 = CreateWindowExW(0, L"ChildClass2", L"Child Window #2",
+                            flags,
+                            13, 113, 211, 80, hwnd, NULL, hInst, NULL);
 
-//            HWND sub3 = CreateWindowExW(0, L"ChildClass3", L"Child Window #3",
-//                            flags,
-//                            13, 213, 211, 80, hwnd, NULL, hInst, NULL);
-
-//            char buffer[256] = { 0 };
-//            snprintf(buffer, sizeof(buffer-1), "sub1=%p sub2=%p sub3=%p\n", sub1, sub2, sub3);
+            HWND sub3 = CreateWindowExW(0, L"ChildClass3", L"Child Window #3",
+                            flags,
+                            13, 213, 211, 80, hwnd, NULL, hInst, NULL);
 
             return 0;
         }
 
         case WM_RBUTTONDOWN: {
             HINSTANCE hInst = ((LPCREATESTRUCT)lParam)->hInstance;
-            HWND sub3 = CreateWindowExW(0, L"ChildClass3", L"Child Window #3",
+
+            HWND sub3 = CreateWindowExW(0, L"ChildClass1", L"Child Window #4",
                             flags,
-                            5, 5, 400, 400, hwnd, NULL, hInst, NULL);
+                            13, 13, 400, 400, hwnd, NULL, hInst, NULL);
 
-            const wchar_t *PROP_NAME = L"__wine_x11_whole_window";
+//            HWND sub3 = CreateWindowExW(0, L"ChildClass3", L"Child Window #3",
+//                            flags,
+//                            5, 5, 400, 400, hwnd, NULL, hInst, NULL);
 
-            int myData = (int)GetPropW(sub3, PROP_NAME);
-            wchar_t buffer[64];
-            wsprintfW(buffer, L"Property value = 0x%X", myData);
-            MessageBoxW(hwnd, buffer, L"GetPropW", MB_OK);
+//            const wchar_t *PROP_NAME = L"__wine_x11_whole_window";
+
+//            int myData = (int)GetPropW(sub3, PROP_NAME);
+//            wchar_t buffer[64];
+//            wsprintfW(buffer, L"Property value = 0x%X", myData);
+//            MessageBoxW(hwnd, buffer, L"GetPropW", MB_OK);
 
             return 0;
         }
