@@ -19,7 +19,7 @@ LDFLAGS := -mwindows
 all: $(TARGET)
 
 $(TARGET): $(SRCS)
-	$(CC) $(CFLAGS) $(SRCS) -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(SRCS) -o $@ $(LDFLAGS) -lwininet
 
 # clean target
 clean:
