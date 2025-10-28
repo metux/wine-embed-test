@@ -45,7 +45,17 @@ typedef struct {
 
 TabRec tabs[NUM_TABS] = { 0 };
 
-HWND container_window;
+int current_tab = -1;
+
+void show_tab(int idx) {
+    for (int x=0; x<NUM_TABS; x++) {
+        if (x == idx)
+            ShowWindow(tabs[x].container_window, SW_SHOW);
+        else
+            ShowWindow(tabs[x].container_window, SW_HIDE);
+    }
+    current_tab = idx;
+}
 
 int doHttp(const LPCWSTR url)
 {
@@ -88,7 +98,7 @@ int doHttp(const LPCWSTR url)
 }
 
 // Window procedures for each subwindow type
-LRESULT CALLBACK SimpleFieldProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK TabWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {
@@ -109,6 +119,14 @@ LRESULT CALLBACK SimpleFieldProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
             EndPaint(hwnd, &ps);
             return 0;
         }
+
+        case WM_LBUTTONDOWN: {
+            long id = GetWindowLongPtr(hwnd, GWLP_USERDATA);
+            fprintf(stderr, "TAB CLICKED %ld\n", id);
+            show_tab(id);
+            return 0;
+        }
+
     }
     return DefWindowProcW(hwnd, msg, wParam, lParam);
 }
@@ -139,8 +157,9 @@ LRESULT CALLBACK ContainerWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             int XID = (int)GetPropW(hwnd, PROP_NAME_XID);
             wchar_t buffer[1024];
             const wchar_t *url = L"https%3A%2F%2Fwww.thur.de%2F%0A";
+            long id = GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
-            wsprintfW(buffer, BROWSERD_URL L"/create/%d/%X/%d/%d/%ls", BROWSERD_SLOT, XID, CONTAINER_W, CONTAINER_H, url);
+            wsprintfW(buffer, BROWSERD_URL L"/create/%ld/%X/%d/%d/%ls", id, XID, CONTAINER_W, CONTAINER_H, url);
             wprintf(L"%ls\n", buffer);
 
             if (doHttp(buffer) == 0)
@@ -190,18 +209,6 @@ void create_tab(int idx, HINSTANCE hInst, HWND parent) {
     SetWindowLongPtr(tabs[idx].tab_window, GWLP_USERDATA, idx);
 }
 
-int current_tab = -1;
-
-void show_tab(int idx) {
-    for (int x=0; x<NUM_TABS; x++) {
-        if (x == idx)
-            ShowWindow(tabs[x].container_window, SW_SHOW);
-        else
-            ShowWindow(tabs[x].container_window, SW_HIDE);
-    }
-    current_tab = idx;
-}
-
 // Main window procedure
 LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -227,7 +234,7 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             wchar_t buffer[1024];
             wsprintfW(buffer, L"RBUTTONDOWN");
             SetWindowTextW(hwnd, buffer);
-            ShowWindow(container_window, SW_HIDE);
+            ShowWindow(tabs[current_tab].container_window, SW_HIDE);
             return 0;
         }
 
@@ -235,7 +242,7 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             wchar_t buffer[1024];
             wsprintfW(buffer, L"LBUTTONDOWN");
             SetWindowTextW(hwnd, buffer);
-            ShowWindow(container_window, SW_SHOW);
+            ShowWindow(tabs[current_tab].container_window, SW_SHOW);
             return 0;
         }
 
@@ -277,7 +284,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, PWSTR lpCmdLine, int nShow
         .hInstance = hInst,
         .hCursor = LoadCursorW(NULL, IDC_ARROW),
         .hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1),
-        .lpfnWndProc = SimpleFieldProc,
+        .lpfnWndProc = TabWindowProc,
         .lpszClassName = CLS_TAB,
     };
     RegisterClassW(&tabClass);
