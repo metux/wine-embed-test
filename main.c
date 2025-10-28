@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <inttypes.h>
+#include <stdbool.h>
 
 #ifndef UNICODE
 #define UNICODE
@@ -28,7 +29,21 @@
 #define BROWSERD_URL L"http://localhost:8080"
 #define BROWSERD_SLOT 1
 
+#define CLS_TAB L"mtxTab"
+#define CLS_CONTAINER L"mtxViewer"
+
+#define NUM_TABS 3
+
 const wchar_t *PROP_NAME_XID = L"__wine_x11_whole_window";
+
+typedef struct {
+    HWND tab_window;
+    HWND container_window;
+    bool visible;
+    bool container_created;
+} TabRec;
+
+TabRec tabs[NUM_TABS] = { 0 };
 
 HWND container_window;
 
@@ -87,6 +102,31 @@ LRESULT CALLBACK SimpleFieldProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
             wchar_t buf[1024];
             int length = GetWindowTextW(hwnd, buf, sizeof(buf) / sizeof(buf[0]));
             TextOutW(hdc, 5, 5, buf, length);
+            swprintf(buf, sizeof(buf)/sizeof(buf[0]), L"x WIN: 0x%X", (uintptr_t)hwnd);
+            TextOutW(hdc, 5, 20, buf, wcslen(buf));
+            swprintf(buf, sizeof(buf)/sizeof(buf[0]), L"x XID: 0x%X", XID);
+            TextOutW(hdc, 5, 35, buf, wcslen(buf));
+            EndPaint(hwnd, &ps);
+            return 0;
+        }
+    }
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
+}
+
+LRESULT CALLBACK ContainerWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch (msg)
+    {
+        case WM_PAINT:
+        {
+            int XID = (int)GetPropW(hwnd, PROP_NAME_XID);
+
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hwnd, &ps);
+
+            wchar_t buf[1024];
+            int length = GetWindowTextW(hwnd, buf, sizeof(buf) / sizeof(buf[0]));
+            TextOutW(hdc, 5, 5, buf, length);
             swprintf(buf, sizeof(buf)/sizeof(buf[0]), L"WIN: 0x%X", (uintptr_t)hwnd);
             TextOutW(hdc, 5, 20, buf, wcslen(buf));
             swprintf(buf, sizeof(buf)/sizeof(buf[0]), L"XID: 0x%X", XID);
@@ -114,6 +154,54 @@ LRESULT CALLBACK SimpleFieldProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
     return DefWindowProcW(hwnd, msg, wParam, lParam);
 }
 
+void create_tab(int idx, HINSTANCE hInst, HWND parent) {
+    wchar_t buffer[128];
+
+    wsprintfW(buffer, L"TAB %d", idx);
+
+    tabs[idx].tab_window = CreateWindowExW(0,
+        CLS_TAB,
+        buffer,
+        WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED,
+        5,
+        10 + (idx * 100),
+        BOX_W, BOX_H,
+        parent,
+        NULL,
+        hInst,
+        NULL);
+
+    wsprintfW(buffer, L"BROWSER %d", idx);
+
+    tabs[idx].container_window = CreateWindowExW(0,
+        CLS_CONTAINER,
+        buffer,
+        WS_CHILD | WS_BORDER | WS_OVERLAPPED | WS_X_NATIVE,
+        BOX_W + 10,
+        10,
+        CONTAINER_W,
+        CONTAINER_H,
+        parent,
+        NULL,
+        hInst,
+        NULL);
+
+    SetWindowLongPtr(tabs[idx].container_window, GWLP_USERDATA, idx);
+    SetWindowLongPtr(tabs[idx].tab_window, GWLP_USERDATA, idx);
+}
+
+int current_tab = -1;
+
+void show_tab(int idx) {
+    for (int x=0; x<NUM_TABS; x++) {
+        if (x == idx)
+            ShowWindow(tabs[x].container_window, SW_SHOW);
+        else
+            ShowWindow(tabs[x].container_window, SW_HIDE);
+    }
+    current_tab = idx;
+}
+
 // Main window procedure
 LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -121,28 +209,16 @@ LRESULT CALLBACK MainProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
         case WM_CREATE:
         {
-            int flags = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_OVERLAPPED;
             HINSTANCE hInst = ((LPCREATESTRUCT)lParam)->hInstance;
 
             /* store the hInstance for later use */
             SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)hInst);
 
-            /* Create 3 child windows, each with its own class and title */
-            CreateWindowExW(0, L"SimpleField", L"Child Window #1",
-                            flags,
-                            5, 10, BOX_W, BOX_H, hwnd, NULL, hInst, NULL);
+            create_tab(0, hInst, hwnd);
+            create_tab(1, hInst, hwnd);
+            create_tab(2, hInst, hwnd);
 
-            CreateWindowExW(0, L"SimpleField", L"Child Window #2",
-                            flags,
-                            5, 113, BOX_W, BOX_H, hwnd, NULL, hInst, NULL);
-
-            CreateWindowExW(0, L"SimpleField", L"Child Window #3",
-                            flags,
-                            5, 213, BOX_W, BOX_H, hwnd, NULL, hInst, NULL);
-
-            container_window = CreateWindowExW(0, L"SimpleField", L"Child Window #4",
-                            flags | WS_X_NATIVE,
-                            BOX_W + 10, 10, CONTAINER_W, CONTAINER_H, hwnd, NULL, hInst, NULL);
+            show_tab(0);
 
             return 0;
         }
@@ -197,14 +273,23 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, PWSTR lpCmdLine, int nShow
     RegisterClassW(&wc);
 
     // --- Register 3 different child window classes ---
-    WNDCLASSW child1 = {
+    WNDCLASSW tabClass = {
         .hInstance = hInst,
         .hCursor = LoadCursorW(NULL, IDC_ARROW),
         .hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1),
         .lpfnWndProc = SimpleFieldProc,
-        .lpszClassName = L"SimpleField",
+        .lpszClassName = CLS_TAB,
     };
-    RegisterClassW(&child1);
+    RegisterClassW(&tabClass);
+
+    WNDCLASSW containerClass = {
+        .hInstance = hInst,
+        .hCursor = LoadCursorW(NULL, IDC_ARROW),
+        .hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1),
+        .lpfnWndProc = ContainerWindowProc,
+        .lpszClassName = CLS_CONTAINER,
+    };
+    RegisterClassW(&containerClass);
 
     HWND hwndMain = CreateWindowExW(
         0, L"MainWinClass", L"Main Window",
