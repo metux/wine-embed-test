@@ -26,7 +26,7 @@
 #define CONTAINER_W 1400
 #define CONTAINER_H 900
 
-#define BROWSERD_URL L"http://localhost:8080"
+#define BROWSERD_URL L"http://localhost:8080/api/v1/browser"
 #define BROWSERD_SLOT 1
 
 #define CLS_TAB L"mtxTab"
@@ -159,7 +159,7 @@ LRESULT CALLBACK ContainerWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             const wchar_t *url = L"https%3A%2F%2Fwww.thur.de%2F%0A";
             long id = GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
-            wsprintfW(buffer, BROWSERD_URL L"/create/%ld/%X/%d/%d/%ls", id, XID, CONTAINER_W, CONTAINER_H, url);
+            wsprintfW(buffer, BROWSERD_URL L"/create/wintest-1-%ld/%X/%d/%d/%ls", id, XID, CONTAINER_W, CONTAINER_H, url);
             wprintf(L"%ls\n", buffer);
 
             if (doHttp(buffer) == 0)
