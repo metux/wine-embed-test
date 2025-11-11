@@ -57,7 +57,7 @@ void show_tab(int idx) {
     current_tab = idx;
 }
 
-int doHttp(const LPCWSTR url)
+int doHttp(const LPCWSTR url, const LPCWSTR headers)
 {
     HINTERNET hInternet = InternetOpenW(L"MyWin32App", INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
     if (!hInternet) {
@@ -65,11 +65,13 @@ int doHttp(const LPCWSTR url)
         return 1;
     }
 
+    wprintf(L"--- Headers ---\n%ls\n", headers);
+
     HINTERNET hConnect = InternetOpenUrlW(
         hInternet,
         url,
-        NULL,
-        0,
+        headers,
+        -1,
         INTERNET_FLAG_RELOAD,
         0
     );
@@ -156,13 +158,18 @@ LRESULT CALLBACK ContainerWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
         case WM_RBUTTONDOWN: {
             int XID = (int)GetPropW(hwnd, PROP_NAME_XID);
             wchar_t buffer[1024];
-            const wchar_t *url = L"https%3A%2F%2Fwww.thur.de%2F%0A";
+            wchar_t headers[4096];
+            const wchar_t *url_enc = L"https%3A%2F%2Fwww.thur.de%2F%0A";
+            const wchar_t *url = L"https://www.thur.de/";
             long id = GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
-            wsprintfW(buffer, BROWSERD_URL L"/create/wintest-1-%ld/%X/%d/%d/%ls", id, XID, CONTAINER_W, CONTAINER_H, url);
+            wsprintfW(buffer, BROWSERD_URL L"/create/wintest-1-%ld/%X/%d/%d/%ls", id, XID, CONTAINER_W, CONTAINER_H, url_enc);
             wprintf(L"%ls\n", buffer);
 
-            if (doHttp(buffer) == 0)
+            wsprintfW(headers, L"Target-Url: %ls\r\n\r\n", url);
+            wprintf(L"%ls\n", headers);
+
+            if (doHttp(buffer, headers) == 0)
                 SetWindowTextW(hwnd, L"send browserd command");
             else
                 SetWindowTextW(hwnd, L"failed connecting to browserd");
