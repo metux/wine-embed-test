@@ -29,8 +29,8 @@
 #define BROWSERD_URL L"http://localhost:8080/api/v1/browser"
 #define BROWSERD_SLOT 1
 
-#define CLS_TAB L"mtxTab"
-#define CLS_CONTAINER L"mtxViewer"
+#define CLS_TAB L"_X11_NATIVE_mtxTab"
+#define CLS_CONTAINER L"_X11_NATIVE_mtxViewer"
 
 #define NUM_TABS 3
 
@@ -152,6 +152,9 @@ LRESULT CALLBACK ContainerWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             swprintf(buf, sizeof(buf)/sizeof(buf[0]), L"XID: 0x%X", XID);
             TextOutW(hdc, 5, 35, buf, wcslen(buf));
             EndPaint(hwnd, &ps);
+            swprintf(buf, sizeof(buf)/sizeof(buf[0]), L"-- press right mouse button to create browser");
+            TextOutW(hdc, 5, 65, buf, wcslen(buf));
+            EndPaint(hwnd, &ps);
             return 0;
         }
 
@@ -161,12 +164,13 @@ LRESULT CALLBACK ContainerWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             wchar_t headers[4096];
             const wchar_t *url_enc = L"https%3A%2F%2Fwww.thur.de%2F%0A";
             const wchar_t *url = L"https://www.thur.de/";
+            const wchar_t *webhook = L"http://localhost:8080/webhook";
             long id = GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
             wsprintfW(buffer, BROWSERD_URL L"/create/wintest-1-%ld/%X/%d/%d/%ls", id, XID, CONTAINER_W, CONTAINER_H, url_enc);
             wprintf(L"%ls\n", buffer);
 
-            wsprintfW(headers, L"Target-Url: %ls\r\n\r\n", url);
+            wsprintfW(headers, L"Url: %ls\r\nXID: %X\r\nWebhook: %ls\r\n", url, XID, webhook);
             wprintf(L"%ls\n", headers);
 
             if (doHttp(buffer, headers) == 0)
