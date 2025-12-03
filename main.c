@@ -167,7 +167,8 @@ LRESULT CALLBACK ContainerWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
             const wchar_t *webhook = L"http://localhost:8080/webhook";
             long id = GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
-            wsprintfW(buffer, BROWSERD_URL L"/create/wintest-1-%ld/%X/%d/%d/%ls", id, XID, CONTAINER_W, CONTAINER_H, url_enc);
+//            wsprintfW(buffer, BROWSERD_URL L"/create/wintest-1-%ld/%X/%d/%d/%ls", id, XID, CONTAINER_W, CONTAINER_H, url_enc);
+            wsprintfW(buffer, BROWSERD_URL L"/create/wintest-1-%ld/%X/%d/%d", id, XID, CONTAINER_W, CONTAINER_H);
             wprintf(L"%ls\n", buffer);
 
             wsprintfW(headers, L"Url: %ls\r\nXID: %X\r\nWebhook: %ls\r\n", url, XID, webhook);
